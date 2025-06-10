@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-docs-indexer-mcp = "docs_indexer_mcp:main"
+docs-indexer-mcp = "docs_indexer_mcp.mcp:main"
 cli = "docs_indexer_mcp.cli:main"
 
 [build-system]

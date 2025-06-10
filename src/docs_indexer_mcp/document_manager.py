@@ -80,29 +80,28 @@ class DocumentManager:
         return Documentation.from_dict(data)
 
     @classmethod
-    def read_page(cls, doc_name: str, page_index: int) -> Tuple[str, str]:
+    def read_page(cls, doc_name: str, url: str) -> Tuple[str, str]:
         """Read a specific page from documentation and convert to text.
 
         Args:
             doc_name: Name of the documentation
-            page_index: Index of the page (0-based)
+            url: URL of the page to read
 
         Returns:
             Tuple of (title, text_content)
 
         Raises:
             FileNotFoundError: If documentation not found
-            IndexError: If page index is out of range
+            ValueError: If no page found with the given URL
             requests.RequestException: If page cannot be fetched
         """
         documentation = DocumentManager.load_documentation(doc_name)
-
-        if page_index < 0 or page_index >= len(documentation.pages):
-            raise IndexError(
-                f"Page index out of range. Available pages: 0-{len(documentation.pages) - 1}"
-            )
-
-        page = documentation.pages[page_index]
+        
+        # Find the page with matching URL
+        matching_pages = [p for p in documentation.pages if p.url == url]
+        if not matching_pages:
+            raise ValueError(f"No page found with URL: {url}")
+        page = matching_pages[0]
 
         response = requests.get(page.url)
         response.raise_for_status()
