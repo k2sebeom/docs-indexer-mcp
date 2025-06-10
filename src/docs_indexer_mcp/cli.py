@@ -1,4 +1,5 @@
 import sys
+import requests
 from typing import List
 
 from .document_manager import DocumentManager
@@ -14,6 +15,7 @@ class CLI:
             "crawl": self.crawl,
             "list": self.list_docs,
             "pages": self.list_pages,
+            "read": self.read_page,
         }
     
     def show_help(self, args: List[str] = None) -> None:
@@ -24,6 +26,7 @@ class CLI:
         print("  crawl <title> <url> <prefix> - Crawl and index a documentation")
         print("  list                     - List all available documentations")
         print("  pages <doc_name>         - List all pages in a documentation")
+        print("  read <doc_name> <page_number> - Read a specific page from documentation")
     
     def exit(self, args: List[str] = None) -> None:
         """Exit the program."""
@@ -77,6 +80,37 @@ class CLI:
             print(f"Documentation '{doc_name}' not found.")
         except Exception as e:
             print(f"Error loading documentation: {e}")
+    
+    def read_page(self, args: List[str]) -> None:
+        """Read a specific page from documentation."""
+        if len(args) < 2:
+            print("Usage: read <doc_name> <page_number>")
+            return
+        
+        doc_name = args[0]
+        
+        try:
+            page_num = int(args[1])
+            
+            # Convert from 1-based (user-facing) to 0-based (internal) indexing
+            page_index = page_num - 1
+            
+            try:
+                title, content = Crawler.read_page(doc_name, page_index)
+                print(f"\n=== {title} ===\n")
+                print(content)
+            except IndexError:
+                documentation = DocumentManager.load_documentation(doc_name)
+                print(f"Invalid page number. Available pages: 1-{len(documentation.pages)}")
+            except requests.RequestException as e:
+                print(f"Error fetching page content: {e}")
+                
+        except ValueError:
+            print("Page number must be an integer.")
+        except FileNotFoundError:
+            print(f"Documentation '{doc_name}' not found.")
+        except Exception as e:
+            print(f"Error: {e}")
     
     def run_command(self, command: str, args: List[str]) -> None:
         """Run a command with arguments."""

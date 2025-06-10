@@ -1,8 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, urldefrag
-from typing import Set, List
+from typing import Set, List, Tuple
 from datetime import datetime
+import html2text
 
 from .models import Documentation, Page
 from .document_manager import DocumentManager
@@ -15,6 +16,9 @@ class Crawler:
         self.prefix = prefix
         self.visited_urls: Set[str] = set()
         self.pages: List[Page] = []
+        self.html_converter = html2text.HTML2Text()
+        self.html_converter.ignore_links = False
+        self.html_converter.ignore_images = False
     
     def normalize_url(self, url: str) -> str:
         """Normalize URL by removing fragments and query parameters."""
@@ -82,3 +86,36 @@ class Crawler:
         
         DocumentManager.save_documentation(doc)
         print(f"Indexed {len(self.pages)} pages for {self.doc_name}")
+    
+    @classmethod
+    def read_page(cls, doc_name: str, page_index: int) -> Tuple[str, str]:
+        """Read a specific page from documentation and convert to text.
+        
+        Args:
+            doc_name: Name of the documentation
+            page_index: Index of the page (0-based)
+            
+        Returns:
+            Tuple of (title, text_content)
+            
+        Raises:
+            FileNotFoundError: If documentation not found
+            IndexError: If page index is out of range
+            requests.RequestException: If page cannot be fetched
+        """
+        documentation = DocumentManager.load_documentation(doc_name)
+        
+        if page_index < 0 or page_index >= len(documentation.pages):
+            raise IndexError(f"Page index out of range. Available pages: 0-{len(documentation.pages)-1}")
+        
+        page = documentation.pages[page_index]
+        
+        response = requests.get(page.url)
+        response.raise_for_status()
+        
+        converter = html2text.HTML2Text()
+        converter.ignore_links = False
+        converter.ignore_images = False
+        text_content = converter.handle(response.text)
+        
+        return page.title, text_content
