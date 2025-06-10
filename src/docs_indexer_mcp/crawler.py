@@ -1,14 +1,11 @@
-import os
-import json
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, urldefrag
 from typing import Set, List
-import time
 from datetime import datetime
 
 from .models import Documentation, Page
-from .config import Config
+from .document_manager import DocumentManager
 
 
 class Crawler:
@@ -47,13 +44,10 @@ class Crawler:
         self.visited_urls.add(normalized_url)
         
         try:
-            print(f'Indexing {url}')
             response = requests.get(url)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'html.parser')
-
-            
             
             # Extract title
             title_tag = soup.find('title')
@@ -86,26 +80,5 @@ class Crawler:
             last_synced=datetime.now().isoformat()
         )
         
-        # Ensure directory exists
-        doc_dir = Config.get_doc_dir(self.doc_name)
-        os.makedirs(doc_dir, exist_ok=True)
-        
-        # Save meta.json
-        meta_path = Config.get_meta_path(self.doc_name)
-        with open(meta_path, 'w') as f:
-            json.dump(doc.to_dict(), f, indent=2)
-        
+        DocumentManager.save_documentation(doc)
         print(f"Indexed {len(self.pages)} pages for {self.doc_name}")
-
-
-def load_documentation(doc_name: str) -> Documentation:
-    """Load documentation from meta.json."""
-    meta_path = Config.get_meta_path(doc_name)
-    
-    if not os.path.exists(meta_path):
-        raise FileNotFoundError(f"Documentation '{doc_name}' not found")
-    
-    with open(meta_path, 'r') as f:
-        data = json.load(f)
-    
-    return Documentation.from_dict(data)

@@ -1,16 +1,13 @@
-import os
 import sys
-import json
-from typing import List, Optional
+from typing import List
 
-from .config import Config
-from .crawler import Crawler, load_documentation
-from .models import Documentation, Page
+from .document_manager import DocumentManager
+from .crawler import Crawler
 
 
 class CLI:
     def __init__(self):
-        Config.ensure_dirs()
+        DocumentManager.ensure_dirs()
         self.commands = {
             "help": self.show_help,
             "exit": self.exit,
@@ -40,13 +37,14 @@ class CLI:
             return
         
         doc_name, base_url, prefix = args
-
+        print(f"Crawling {base_url} with prefix {prefix}...")
+        
         crawler = Crawler(doc_name, base_url, prefix)
         crawler.crawl()
     
     def list_docs(self, args: List[str] = None) -> None:
         """List all available documentations."""
-        docs = Config.list_docs()
+        docs = DocumentManager.list_docs()
         
         if not docs:
             print("No documentations available.")
@@ -55,7 +53,7 @@ class CLI:
         print("Available documentations:")
         for doc in docs:
             try:
-                documentation = load_documentation(doc)
+                documentation = DocumentManager.load_documentation(doc)
                 print(f"  {doc} - {len(documentation.pages)} pages, last synced: {documentation.last_synced}")
             except Exception as e:
                 print(f"  {doc} - Error loading documentation: {e}")
@@ -69,7 +67,7 @@ class CLI:
         doc_name = args[0]
         
         try:
-            documentation = load_documentation(doc_name)
+            documentation = DocumentManager.load_documentation(doc_name)
             print(f"Pages in {doc_name} ({len(documentation.pages)}):")
             
             for i, page in enumerate(documentation.pages, 1):
