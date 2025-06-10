@@ -93,14 +93,18 @@ class CLI:
 
         doc_name = args[0]
 
+        documentation = DocumentManager.load_documentation(doc_name)
+
         try:
             page_num = int(args[1])
 
             # Convert from 1-based (user-facing) to 0-based (internal) indexing
             page_index = page_num - 1
 
+            page_url = documentation.pages[page_index].url
+
             try:
-                title, content = DocumentManager.read_page(doc_name, page_index)
+                title, content = DocumentManager.read_page(doc_name, page_url)
                 print(f"\n=== {title} ===\n")
                 print(content)
             except IndexError:

@@ -24,7 +24,7 @@ async def list_documentations(
 @mcp.tool()
 async def list_pages(
     ctx: Context,
-    doc_name: str = Field("Name of the documentation to list pages"),
+    doc_name: str = Field(description="Name of the documentation to list pages"),
 ) -> List[Page]:
     """
     List available pages in a documentation.
@@ -36,11 +36,16 @@ async def list_pages(
 @mcp.tool()
 async def read_page(
     ctx: Context,
-    doc_name: str = Field("Name of the documentation to read"),
-    page_index: int = Field("Index of the page to read"),
+    doc_name: str = Field(description="Name of the documentation to read"),
+    url: str = Field(description="Url of the page to read"),
 ) -> str:
     """
     Read a specific page from documentation.
     """
-    title, content = DocumentManager.read_page(doc_name, page_index)
+    title, content = DocumentManager.read_page(doc_name, url)
     return f"# {title}\n" + content
+
+
+
+def main():
+    mcp.run()
