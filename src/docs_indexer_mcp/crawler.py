@@ -44,6 +44,7 @@ class Crawler:
         self.visited_urls.add(normalized_url)
 
         try:
+            print(f'Indexing {url}')
             response = requests.get(url)
             response.raise_for_status()
 
