@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from datetime import datetime
 from typing import List, Tuple
 import requests
@@ -79,6 +80,31 @@ class DocumentManager:
 
         return Documentation.from_dict(data)
 
+    @classmethod
+    def delete_documentation(cls, doc_name: str) -> bool:
+        """Delete a documentation by removing its directory.
+        
+        Args:
+            doc_name: Name of the documentation to delete
+            
+        Returns:
+            bool: True if deletion was successful, False otherwise
+            
+        Raises:
+            FileNotFoundError: If documentation not found
+        """
+        doc_dir = cls.get_doc_dir(doc_name)
+        
+        if not os.path.exists(doc_dir):
+            raise FileNotFoundError(f"Documentation '{doc_name}' not found")
+            
+        try:
+            shutil.rmtree(doc_dir)
+            return True
+        except Exception as e:
+            print(f"Error deleting documentation: {e}")
+            return False
+    
     @classmethod
     def read_page(cls, doc_name: str, url: str) -> Tuple[str, str]:
         """Read a specific page from documentation and convert to text.

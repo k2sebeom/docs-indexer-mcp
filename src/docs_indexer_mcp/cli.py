@@ -16,6 +16,7 @@ class CLI:
             "list": self.list_docs,
             "pages": self.list_pages,
             "read": self.read_page,
+            "delete": self.delete_doc,
         }
 
     def show_help(self, args: List[str] = None) -> None:
@@ -29,6 +30,7 @@ class CLI:
         print(
             "  read <doc_name> <page_number> - Read a specific page from documentation"
         )
+        print("  delete <doc_name>        - Delete a documentation")
 
     def exit(self, args: List[str] = None) -> None:
         """Exit the program."""
@@ -117,6 +119,31 @@ class CLI:
 
         except ValueError:
             print("Page number must be an integer.")
+        except FileNotFoundError:
+            print(f"Documentation '{doc_name}' not found.")
+        except Exception as e:
+            print(f"Error: {e}")
+            
+    def delete_doc(self, args: List[str]) -> None:
+        """Delete a documentation."""
+        if not args:
+            print("Usage: delete <doc_name>")
+            return
+            
+        doc_name = args[0]
+        
+        try:
+            # Confirm deletion
+            confirmation = input(f"Are you sure you want to delete '{doc_name}'? (y/n): ").strip().lower()
+            if confirmation != 'y':
+                print("Deletion cancelled.")
+                return
+                
+            success = DocumentManager.delete_documentation(doc_name)
+            if success:
+                print(f"Documentation '{doc_name}' has been deleted.")
+            else:
+                print(f"Failed to delete documentation '{doc_name}'.")
         except FileNotFoundError:
             print(f"Documentation '{doc_name}' not found.")
         except Exception as e:
