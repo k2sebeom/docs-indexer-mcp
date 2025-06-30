@@ -1,11 +1,12 @@
 import requests
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, urldefrag
-from typing import Set, List
+from typing import Set, List, Literal
 from datetime import datetime
 
-from .models import Documentation, Page
-from .document_manager import DocumentManager
+from docs_indexer_mcp.models import Documentation, Page
+from docs_indexer_mcp.document_manager import DocumentManager
 
 
 class Crawler:
@@ -15,6 +16,22 @@ class Crawler:
         self.prefix = prefix
         self.visited_urls: Set[str] = set()
         self.pages: List[Page] = []
+
+    @staticmethod
+    def _get_page_requests(url: str) -> str:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.text
+    
+    @staticmethod
+    def _get_page_browser(url: str) -> str:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            page.goto(url)
+            text = page.content()
+            browser.close()
+        return text
 
     def normalize_url(self, url: str) -> str:
         """Normalize URL by removing fragments and query parameters."""
@@ -28,12 +45,12 @@ class Crawler:
         normalized = self.normalize_url(url)
         return normalized.startswith(self.prefix)
 
-    def crawl(self):
+    def crawl(self, mode: Literal['request', 'browser'] = 'request'):
         """Start crawling from the base URL."""
-        self._crawl_page(self.base_url)
+        self._crawl_page(self.base_url, mode)
         self._save_results()
 
-    def _crawl_page(self, url: str):
+    def _crawl_page(self, url: str, mode: Literal['request', 'browser'] = 'request'):
         """Crawl a single page and its links."""
         normalized_url = self.normalize_url(url)
 
@@ -45,10 +62,12 @@ class Crawler:
 
         try:
             print(f'Indexing {url}')
-            response = requests.get(url)
-            response.raise_for_status()
+            if mode == 'browser':
+                text = Crawler._get_page_browser(url)
+            else:
+                text = Crawler._get_page_requests(url)
 
-            soup = BeautifulSoup(response.text, "html.parser")
+            soup = BeautifulSoup(text, "html.parser")
 
             # Extract title
             title_tag = soup.find("title")

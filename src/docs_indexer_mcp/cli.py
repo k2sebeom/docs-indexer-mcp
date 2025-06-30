@@ -40,14 +40,15 @@ class CLI:
     def crawl(self, args: List[str]) -> None:
         """Crawl and index a documentation."""
         if len(args) < 3:
-            print("Usage: crawl <title> <url> <prefix>")
+            print("Usage: crawl <title> <url> <prefix> [mode]")
             return
 
-        doc_name, base_url, prefix = args
+        doc_name, base_url, prefix = args[:3]
+        mode = args[3] if len(args) > 3 else 'request'
         print(f"Crawling {base_url} with prefix {prefix}...")
 
         crawler = Crawler(doc_name, base_url, prefix)
-        crawler.crawl()
+        crawler.crawl(mode=mode)
 
     def list_docs(self, args: List[str] = None) -> None:
         """List all available documentations."""

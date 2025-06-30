@@ -7,7 +7,7 @@ import requests
 
 import html2text
 
-from .models import Documentation
+from docs_indexer_mcp.models import Documentation
 
 
 class DocumentManager:
