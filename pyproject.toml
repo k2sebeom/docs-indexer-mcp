@@ -1,9 +1,9 @@
 [project]
 name = "docs-indexer-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server to index custom documents and expose them to AI as tools"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "html2text>=2025.4.15",
@@ -12,9 +12,10 @@ dependencies = [
 ]
 
 [project.scripts]
-docs-indexer-mcp = "docs_indexer_mcp.mcp:main"
+server = "docs_indexer_mcp.mcp:main"
 cli = "docs_indexer_mcp.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
